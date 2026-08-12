@@ -1,4 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env uv run
+# /// script
+# dependencies = [
+#     "mini3di",
+# ]
+# ///
 """
 scripts/dump_weights.py
 
@@ -6,14 +11,12 @@ Extracts weights, biases, and centroids from Python mini3di (encoder_weights_3di
 and outputs static Rust code to src/weights.rs.
 """
 
-import sys
 import struct
+import sys
 from pathlib import Path
 
 # Absolute paths
 REPO_DIR = Path(__file__).resolve().parent.parent
-MINI3DI_PY_DIR = Path("/Users/tsta0015/Programming/mini3di")
-KERASIFY_PATH = MINI3DI_PY_DIR / "mini3di" / "encoder_weights_3di.kerasify"
 OUTPUT_RUST_PATH = REPO_DIR / "src" / "weights.rs"
 
 # Fallback/Default centroids from mini3di.encoder.Encoder._CENTROIDS
@@ -41,20 +44,25 @@ DEFAULT_CENTROIDS = [
 ]
 
 
-def load_layers_using_unkerasify(kerasify_path: Path):
+def load_layers_using_unkerasify(kerasify_path: Path | None = None):
     """Attempt loading via mini3di package."""
-    if str(MINI3DI_PY_DIR) not in sys.path:
-        sys.path.insert(0, str(MINI3DI_PY_DIR))
     try:
+        import mini3di
         from mini3di import _unkerasify
         from mini3di.encoder import Encoder
+
+        if kerasify_path is None or not kerasify_path.exists():
+            pkg_dir = Path(mini3di.__file__).parent
+            kerasify_path = pkg_dir / "encoder_weights_3di.kerasify"
 
         with open(kerasify_path, "rb") as f:
             layers = _unkerasify.load(f)
         centroids = Encoder._CENTROIDS.tolist()
         return layers, centroids
-    except Exception as e:
-        print(f"Notice: Could not load via mini3di module ({e}), falling back to struct parser.")
+    except Exception as e:  # noqa: BLE001
+        print(
+            f"Notice: Could not load via mini3di module ({e}), falling back to struct parser."
+        )
         return None, None
 
 
@@ -81,7 +89,7 @@ def parse_kerasify_binary(kerasify_path: Path):
             biases = list(struct.unpack(f"={b0}f", b_bytes))
 
             (activation,) = struct.unpack("I", f.read(4))
-            
+
             # Simple layer representation wrapper
             class DenseData:
                 def __init__(self, w, b, act):
@@ -157,7 +165,7 @@ pub const CENTROIDS: [[f32; 2]; 20] = {cent};
 
 
 def main():
-    kerasify_path = KERASIFY_PATH
+    kerasify_path = None
     output_path = OUTPUT_RUST_PATH
 
     if len(sys.argv) > 1:
@@ -165,13 +173,18 @@ def main():
     if len(sys.argv) > 2:
         output_path = Path(sys.argv[2])
 
-    print(f"Loading weights from {kerasify_path}...")
+    print(f"Loading weights (kerasify path override: {kerasify_path or 'auto'})...")
     layers, centroids = load_layers_using_unkerasify(kerasify_path)
 
     if layers is None:
-        print("Parsing binary format directly with struct...")
-        layers = parse_kerasify_binary(kerasify_path)
-        centroids = DEFAULT_CENTROIDS
+        if kerasify_path is not None and kerasify_path.exists():
+            print(f"Parsing binary format directly with struct from {kerasify_path}...")
+            layers = parse_kerasify_binary(kerasify_path)
+            centroids = DEFAULT_CENTROIDS
+        else:
+            raise RuntimeError(
+                "Failed to load mini3di layers and no valid custom kerasify file path provided."
+            )
 
     code = generate_rust_code(layers, centroids)
     output_path.parent.mkdir(parents=True, exist_ok=True)

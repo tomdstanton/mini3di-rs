@@ -1,4 +1,4 @@
-set default-target := "build"
+default: build
 
 # Run tests using cargo nextest
 test:
@@ -12,6 +12,10 @@ lint:
 # Build the project in release mode
 build:
     cargo build --release
+
+# Regenerate static weights from mini3di VAE using uv
+dump-weights:
+    uv run scripts/dump_weights.py
 
 # Publish to crates.io (dry run)
 publish-dry-run:

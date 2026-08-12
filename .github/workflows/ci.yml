@@ -47,6 +47,14 @@ jobs:
       - name: Cargo Cache
         uses: Swatinem/rust-cache@v2
         
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Verify Weights Script
+        run: |
+          uv run scripts/dump_weights.py
+          git diff --exit-code src/weights.rs
+
       - name: Check Formatting
         run: cargo fmt --all -- --check
         
