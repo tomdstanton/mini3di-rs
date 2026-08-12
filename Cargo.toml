@@ -1,0 +1,25 @@
+[package]
+name = "mini3di-rs"
+version = "0.1.0"
+edition = "2021"
+description = "Pure Rust port of mini3di for 3Di structural alphabet sequence extraction"
+
+[lib]
+name = "mini3di_rs"
+path = "src/lib.rs"
+
+[[bin]]
+name = "mini3di-rs"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+nalgebra = "0.33"
+pdbtbx = "0.11"
+
+[dev-dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+
+

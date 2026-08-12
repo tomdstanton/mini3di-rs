@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@nextest
+        
+      - name: Cargo Cache
+        uses: Swatinem/rust-cache@v2
+        
+      - name: Build
+        run: cargo build --verbose
+        
+      - name: Test
+        run: cargo nextest run --verbose
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+          
+      - name: Cargo Cache
+        uses: Swatinem/rust-cache@v2
+        
+      - name: Check Formatting
+        run: cargo fmt --all -- --check
+        
+      - name: Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
