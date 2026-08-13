@@ -1,11 +1,19 @@
 //! Integration tests for the `mini3di-rs` CLI binary.
 
+use std::path::PathBuf;
 use std::process::Command;
+
+fn test_data_path(filename: &str) -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("data")
+        .join(filename)
+}
 
 #[test]
 fn test_cli_1xso_stdout() {
     let output = Command::new(env!("CARGO_BIN_EXE_mini3di-rs"))
-        .arg("tests/data/1xso.pdb")
+        .arg(test_data_path("1xso.pdb"))
         .output()
         .expect("Failed to execute mini3di-rs binary");
 
@@ -32,7 +40,7 @@ fn test_cli_1xso_stdout() {
 #[test]
 fn test_cli_8crb_chain_filter() {
     let output = Command::new(env!("CARGO_BIN_EXE_mini3di-rs"))
-        .arg("tests/data/8crb.pdb")
+        .arg(test_data_path("8crb.pdb"))
         .arg("--chain")
         .arg("B")
         .output()
@@ -64,7 +72,7 @@ fn test_cli_output_file() {
     let out_file = temp_dir.join("mini3di_test_output.fasta");
 
     let output = Command::new(env!("CARGO_BIN_EXE_mini3di-rs"))
-        .arg("tests/data/1xso.pdb")
+        .arg(test_data_path("1xso.pdb"))
         .arg("-o")
         .arg(&out_file)
         .output()
@@ -88,7 +96,7 @@ fn test_cli_output_file() {
 #[test]
 fn test_cli_missing_chain_error() {
     let output = Command::new(env!("CARGO_BIN_EXE_mini3di-rs"))
-        .arg("tests/data/1xso.pdb")
+        .arg(test_data_path("1xso.pdb"))
         .arg("--chain")
         .arg("NONEXISTENT")
         .output()

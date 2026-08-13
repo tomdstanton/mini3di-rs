@@ -12,6 +12,7 @@ and outputs static Rust code to src/weights.rs.
 """
 
 import struct
+import subprocess
 import sys
 from pathlib import Path
 
@@ -190,6 +191,7 @@ def main():
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(code)
     print(f"Successfully generated static weights at {output_path}")
+    subprocess.run(["cargo", "fmt", "--", str(output_path)], check=False)
 
 
 if __name__ == "__main__":

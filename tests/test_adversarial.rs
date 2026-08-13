@@ -255,8 +255,9 @@ fn test_adv_large_protein_chain_stress() {
     assert_eq!(seq.len(), n_residues);
     assert!(seq.starts_with('D') && seq.ends_with('D'));
     println!("Encoded {} residues in {:?}", n_residues, elapsed);
+    let max_allowed_secs = if cfg!(debug_assertions) { 15 } else { 5 };
     assert!(
-        elapsed.as_secs() < 5,
+        elapsed.as_secs() < max_allowed_secs,
         "10k residue encoding took too long: {:?}",
         elapsed
     );
