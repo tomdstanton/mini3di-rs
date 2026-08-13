@@ -19,7 +19,8 @@ fn test_cli_1xso_stdout() {
 
     assert!(
         output.status.success(),
-        "CLI command should exit with status 0"
+        "CLI command should exit with status 0. Stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
     );
 
     let stdout_str = String::from_utf8(output.stdout).expect("Valid UTF-8 stdout");
@@ -48,7 +49,8 @@ fn test_cli_8crb_chain_filter() {
 
     assert!(
         output.status.success(),
-        "CLI command should exit with status 0"
+        "CLI command should exit with status 0. Stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
     );
 
     let stdout_str = String::from_utf8(output.stdout).expect("Valid UTF-8 stdout");
@@ -80,7 +82,8 @@ fn test_cli_output_file() {
 
     assert!(
         output.status.success(),
-        "CLI command should exit with status 0"
+        "CLI command should exit with status 0. Stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
     );
     assert!(out_file.exists(), "Output fasta file should exist");
 
@@ -173,7 +176,8 @@ END
 
     assert!(
         output.status.success(),
-        "CLI command should exit with status 0"
+        "CLI command should exit with status 0. Stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
     );
 
     let stdout_str = String::from_utf8(output.stdout).expect("Valid UTF-8 stdout");
